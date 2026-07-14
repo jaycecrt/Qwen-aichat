@@ -93,6 +93,35 @@
         }
         .empty-state h2 { font-size: 28px; margin-bottom: 8px; }
         .empty-state p { font-size: 16px; }
+
+        /* ── Hamburger Button (mobile) ── */
+        .hamburger {
+            display: none; background: none; border: none; font-size: 24px;
+            cursor: pointer; padding: 0 8px; color: #333; line-height: 1;
+        }
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 99;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed; top: 0; left: 0; height: 100%; z-index: 100;
+                transform: translateX(-100%); transition: transform 0.3s;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .hamburger { display: block; }
+            .chat-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 16px; }
+            .chat-messages { padding: 16px; }
+            .bubble { max-width: 85%; font-size: 14px; padding: 10px 14px; }
+            .input-bar { padding: 12px 16px; gap: 8px; }
+            .input-bar input { font-size: 14px; padding: 10px 12px; }
+            .input-bar button { padding: 10px 16px; font-size: 14px; }
+            .empty-state h2 { font-size: 22px; }
+            .empty-state p { font-size: 14px; }
+        }
     </style>
 </head>
 <body>
@@ -105,9 +134,15 @@
     <div class="conv-list" id="convList"></div>
 </div>
 
+<!-- ── Sidebar Overlay (mobile) ── -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
 <!-- ── Main Chat Area ── -->
 <div class="main">
-    <div class="chat-header" id="chatTitle">AI 问答助手</div>
+    <div class="chat-header">
+            <button class="hamburger" onclick="toggleSidebar()" title="菜单">☰</button>
+            <span id="chatTitle">AI 问答助手</span>
+        </div>
     <div class="chat-messages" id="chatMessages">
         <div class="empty-state">
             <h2>💬 AI 问答助手</h2>
@@ -122,6 +157,16 @@
 
 <script>
     let currentConversationId = null;
+
+    // ── Sidebar toggle (mobile) ──
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+    function closeSidebar() {
+        document.querySelector('.sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+    }
 
     // ── Load conversation list on page load ──
     loadConversationList();
@@ -159,6 +204,7 @@
     }
 
     function loadConversation(convId) {
+        closeSidebar();
         currentConversationId = convId;
         fetch(`/api/conversations/${convId}`)
             .then(r => r.json())
