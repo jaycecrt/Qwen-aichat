@@ -15,13 +15,26 @@ from crud.crud import (
 )
 from utils.qwen_client import stream_chat
 
+SYSTEM_PROMPT = (
+    "你是青岛洛珂信息技术有限公司的专属AI客服，名字叫「小洛」。\n"
+    "你的职责是帮助用户解答公司相关问题，语气要专业、礼貌、热情。\n"
+    "回复规则：\n"
+    "1. 始终用简体中文回复，简洁清晰。\n"
+    "2. 公司业务相关问题请认真回答；如果你不确定答案，请说：\n"
+    "   「抱歉，这个问题我需要确认一下，我将记录此问题，稍后由人工客服为您跟进。」\n"
+    "3. 不要编造公司地址、电话、价格等具体信息，除非你确定。\n"
+    "4. 面对非公司业务的问题（如闲聊、编程等），友好回应但仍保持洛珂客服的身份。"
+)
+
 router = APIRouter(prefix="/api", tags=["chat"])
 
 
 def _build_messages_for_api(db: Session, conv_id: int) -> list[dict]:
-    """Convert DB message rows to the format Qwen API expects."""
+    """Convert DB message rows to the format Qwen API expects, with system prompt first."""
     msgs = get_messages(db, conv_id)
-    return [{"role": m.role, "content": m.content} for m in msgs]
+    return [{"role": "system", "content": SYSTEM_PROMPT}] + [
+        {"role": m.role, "content": m.content} for m in msgs
+    ]
 
 
 @router.post("/chat")
