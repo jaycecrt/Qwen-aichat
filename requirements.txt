@@ -7,3 +7,4 @@ jinja2
 psycopg2-binary
 PyPDF2
 python-docx
+python-multipart
