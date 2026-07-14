@@ -12,8 +12,10 @@ from crud.crud import (
     get_messages,
     update_conversation_title,
     delete_conversation,
+    search_knowledge,
 )
 from utils.qwen_client import stream_chat
+from utils.embedding import generate_embedding
 
 SYSTEM_PROMPT = (
     "你是青岛洛珂信息技术有限公司的专属AI客服，名字叫「小洛」。\n"
@@ -29,10 +31,18 @@ SYSTEM_PROMPT = (
 router = APIRouter(prefix="/api", tags=["chat"])
 
 
-def _build_messages_for_api(db: Session, conv_id: int) -> list[dict]:
-    """Convert DB message rows to the format Qwen API expects, with system prompt first."""
+def _build_messages_for_api(db: Session, conv_id: int, knowledge_context: str = "") -> list[dict]:
+    """Convert DB message rows to the format Qwen API expects, with system prompt first.
+    If knowledge_context is provided, it is appended after the base system prompt."""
     msgs = get_messages(db, conv_id)
-    return [{"role": "system", "content": SYSTEM_PROMPT}] + [
+    system_content = SYSTEM_PROMPT
+    if knowledge_context:
+        system_content += (
+            "\n\n***以下公司资料供你参考，回答用户问题时请优先基于这些资料回复：***\n"
+            + knowledge_context
+            + "\n如果资料中找不到答案，请如实告知用户，不要编造。"
+        )
+    return [{"role": "system", "content": system_content}] + [
         {"role": m.role, "content": m.content} for m in msgs
     ]
 
@@ -58,10 +68,22 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     # 2. Save user message
     add_message(db, conv_id, "user", req.message)
 
-    # 3. Build full message history for the AI call
-    api_messages = _build_messages_for_api(db, conv_id)
+    # 3. Search knowledge base for relevant context (RAG)
+    knowledge_context = ""
+    try:
+        query_vec = generate_embedding(req.message)
+        chunks = search_knowledge(db, query_vec, top_k=3)
+        if chunks:
+            knowledge_context = "\n".join(
+                f"【资料{i+1}】{c.content}" for i, c in enumerate(chunks)
+            )
+    except Exception:
+        pass  # knowledge search failure should not block chat
 
-    # 4. Auto-title: use first message as conversation title
+    # 4. Build full message history for the AI call
+    api_messages = _build_messages_for_api(db, conv_id, knowledge_context)
+
+    # 6. Auto-title: use first message as conversation title
     if conv.title == "New Chat":
         title = req.message[:50] + ("..." if len(req.message) > 50 else "")
         update_conversation_title(db, conv_id, title)

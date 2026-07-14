@@ -27,3 +27,13 @@ class Message(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     conversation = relationship("Conversation", back_populates="messages")
+
+
+class KnowledgeChunk(Base):
+    __tablename__ = "knowledge_chunks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_file = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    embedding = Column(Text, nullable=True)  # comma-separated float vector
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

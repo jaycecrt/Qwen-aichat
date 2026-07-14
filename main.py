@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from config.db_conf import engine, Base
 from routers.chat import router as chat_router
+from routers.knowledge import router as knowledge_router
 from pathlib import Path
 
 # Create all database tables on startup
@@ -11,6 +12,9 @@ app = FastAPI(title="AI Q&A Chat", version="1.0.0")
 
 # Include chat API routes (/api/chat, /api/conversations, etc.)
 app.include_router(chat_router)
+
+# Include knowledge base routes (/api/knowledge/upload, etc.)
+app.include_router(knowledge_router)
 
 # Read the static HTML frontend once at startup
 INDEX_HTML = (Path(__file__).parent / "view" / "templates" / "index.html").read_text(encoding="utf-8")

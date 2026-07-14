@@ -35,3 +35,18 @@ class ConversationOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class KnowledgeUploadResponse(BaseModel):
+    ok: bool
+    chunks_added: int
+
+
+class KnowledgeItem(BaseModel):
+    id: int
+    source_file: str
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
