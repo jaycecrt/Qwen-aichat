@@ -4,7 +4,10 @@
       "PowerShell(python -m pip install python-multipart)",
       "PowerShell(E:\\\\GIT\\\\Git\\\\bin\\\\git.exe add .)",
       "PowerShell(E:\\\\GIT\\\\Git\\\\bin\\\\git.exe commit -m \"Fix: add missing python-multipart dependency for file uploads\")",
-      "PowerShell(E:\\\\GIT\\\\Git\\\\bin\\\\git.exe push)"
+      "PowerShell(E:\\\\GIT\\\\Git\\\\bin\\\\git.exe push)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }

@@ -1,9 +1,13 @@
 """Simple token-based auth for protecting write operations."""
 import secrets
 import time
+import os
+from dotenv import load_dotenv
 
-ADMIN_USERNAME = "root"
-ADMIN_PASSWORD = "123456adminjkl@!"
+load_dotenv()
+
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "root")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 # In-memory token store: token -> expiry timestamp
 _tokens: dict[str, float] = {}
